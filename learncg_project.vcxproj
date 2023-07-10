@@ -24,6 +24,7 @@
     <ProjectGuid>{91e1aca6-e2a2-48e9-92a9-bb16d63f206b}</ProjectGuid>
     <RootNamespace>learncgproject</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>cg_project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -147,10 +148,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="code\explosion\Explosion.cpp" />
     <ClCompile Include="code\main.cpp" />
     <ClCompile Include="code\object\Object.cpp" />
-    <ClCompile Include="code\particle\particle.cpp" />
     <ClCompile Include="code\player\models\Mesh.cpp" />
     <ClCompile Include="code\player\models\Model.cpp" />
     <ClCompile Include="code\player\Player.cpp" />
@@ -160,12 +159,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\camera\Camera.h" />
-    <ClInclude Include="code\explosion\Explosion.h" />
     <ClInclude Include="code\manager\manager.h" />
     <ClInclude Include="code\object\constants\Positions.h" />
     <ClInclude Include="code\object\constants\Vertices.h" />
     <ClInclude Include="code\object\Object.h" />
-    <ClInclude Include="code\particle\particle.h" />
     <ClInclude Include="code\player\models\Mesh.h" />
     <ClInclude Include="code\player\models\Model.h" />
     <ClInclude Include="code\player\Player.h" />

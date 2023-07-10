@@ -25,7 +25,7 @@ public:
 
 	// ‰÷»æ
 	//void Render(vector<glm::vec3> positions, Shader *shader, bool renderShadow = true);
-	void Render(Shader *shader, bool renderShadow = true);
+	void Render(Shader *shader, bool renderShadow = true, bool renderLight = false);
 
 	glm::vec3 position;
 
@@ -37,7 +37,7 @@ private:
 
 vector<Object> createObjects(vector<float> _vertices, vector<unsigned int> _textures, vector<glm::vec3> _positions);
 
-void renderObjects(vector<Object> _objects, Shader *_shader, bool renderShadow = true);
+void renderObjects(vector<Object> _objects, Shader *_shader, bool renderShadow = true, bool renderLight = false);
 
 void setBuffer(vector<float> _vertices, unsigned int _VAO, unsigned int _VBO);
 

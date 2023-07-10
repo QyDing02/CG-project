@@ -36,34 +36,25 @@ public:
             case 0:
                 player->position = nextPos;
                 break;
-            case 2: {
-                // printObjectsPos(boxes);
-                glm::vec3 boxNextPos = getNextPos(nextPos, direction);
-                int nextObj = ObjectInPos(boxNextPos);
-                if (!nextObj) {
-                    moveBox(nextPos, direction);
-                    player->position = nextPos;
-                    updateGameState();
-                }
-                // printObjectsPos(boxes);
-                break;
-	    }
             case 1:
                 break;
             default:
                 break;
         }
     }
-
+    /*状态码：
+    可以移动：0
+    遇到墙：1
+    */
     int ObjectInPos(glm::vec3 pos) {
         for (int i = 0; i < walls->size(); ++i) {
             if (pos.x == (*walls)[i].position.x && pos.z == (*walls)[i].position.z)
                 return 1;
         }
-        for (int i = 0; i < boxes->size(); ++i) {
-            if (pos.x == (*boxes)[i].position.x && pos.z == (*boxes)[i].position.z)
-                return 2;
-        }
+        //for (int i = 0; i < boxes->size(); ++i) {
+        //    if (pos.x == (*boxes)[i].position.x && pos.z == (*boxes)[i].position.z)
+        //        return 2;
+        //}
         return 0;
     }
 
@@ -88,15 +79,6 @@ public:
         return nextPos;
     }
 
-    bool moveBox(const glm::vec3 boxPos, Direction direction) {
-        for (int i = 0; i < boxes->size(); ++i) {
-            if (boxPos.x == (*boxes)[i].position.x && boxPos.z == (*boxes)[i].position.z) {
-                (*boxes)[i].position = getNextPos((*boxes)[i].position, direction);
-                return true;
-            }
-        }
-        return false;
-    }
 	
     void printObjectsPos(vector<Object>* objs) {
         cout << "all boxes pos: " << endl;
@@ -122,9 +104,6 @@ public:
     }
 
     void resetObjsPos() {
-        for (int i = 0; i < boxes->size(); ++i) {
-            (*boxes)[i].position = boxPositions[i];
-        }
         (*player).position = playerPosition;
 		over = false;
     }

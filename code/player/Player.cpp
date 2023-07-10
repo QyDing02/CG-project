@@ -7,7 +7,8 @@ Player::Player(const char *model_path, int SCR_WIDTH, int SCR_HEIGHT, unsigned i
     projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
     view = glm::mat4(1.0f);
     depthMap = _depthMap;
-    position = glm::vec3(-0.5f, -0.5f, 0.5f);
+    //≥ı ºŒª÷√
+    position = glm::vec3(4.5f, -0.5f, 5.5f); //position = glm::vec3(-0.5f, -0.5f, -0.5f);  
     dir = Forward;
 }
 

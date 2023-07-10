@@ -16,13 +16,17 @@ Object::Object(vector<float> _vertices, vector<unsigned int> _textures,
 
 Object::Object() {}
 
-void Object::Render(Shader *_shader, bool renderShadow) {
+void Object::Render(Shader *_shader, bool renderShadow, bool renderLight) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textures[0]);  // 纹理
 
     if (renderShadow) {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, textures[1]);  // 阴影
+    }
+    if (renderLight)
+    {
+       
     }
 
     glm::mat4 model = glm::mat4(1.0f);
@@ -51,9 +55,9 @@ vector<Object> createObjects(vector<float> _vertices,
 }
 
 void renderObjects(vector<Object> _objects, Shader *_shader,
-                   bool renderShadow) {
+                   bool renderShadow, bool renderLight) {
     for (int i = 0; i < _objects.size(); i++) {
-        _objects[i].Render(_shader, renderShadow);
+        _objects[i].Render(_shader, renderShadow, renderLight);
     }
 }
 

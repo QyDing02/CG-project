@@ -19,16 +19,17 @@
 #include "skybox/skybox.h"
 #include "utils/utils.h"
 #include "text/Text.h"
-#include "particle/particle.h"
-#include "explosion/Explosion.h"
 
 #include FT_FREETYPE_H  
 
 using namespace std;
 
 // 设置窗口大小
-const unsigned int SCR_WIDTH = 1080;
-const unsigned int SCR_HEIGHT = 700;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
+
+// 设置视野大小
+float fov = 45.0f;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -47,7 +48,7 @@ float deltaTime = 0.0f;  // time between current frame and last frame
 float lastFrame = 0.0f;
 
 // restart
-bool restart = false;
+bool restart = true;
 
 // 创建manager
 Manager manager = Manager();
@@ -96,20 +97,14 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
     camera.rotate(xoffset * mouseSensitivity, yoffset * mouseSensitivity);
 }
 
-void renderTitle() {
-    static Model font("assets/title.fbx");
-    static Shader fontShader("glsl/font.vs.glsl", "glsl/font.fs.glsl");
-    glm::mat4 projection = glm::perspective(
-        glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f,
-        100.0f);
-
-    fontShader.use();
-    fontShader.setMat4("view", camera.GetViewMatrix());
-    fontShader.setMat4("projection", projection);
-    glm::mat4 model(1.0f);
-    model = glm::translate(model, glm::vec3(0.0f, 5.0f, -5.0f));
-    fontShader.setMat4("model", model);
-    font.Draw(fontShader, 0, false);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    if (fov >= 1.0f && fov <= 45.0f)
+        fov -= yoffset;
+    if (fov <= 1.0f)
+        fov = 1.0f;
+    if (fov >= 45.0f)
+        fov = 45.0f;
 }
 
 int main() {
@@ -122,7 +117,7 @@ int main() {
 
     // 创建一个窗口对象
     GLFWwindow* window =
-        glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Sokoban", NULL, NULL);
+        glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Maze", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -133,6 +128,7 @@ int main() {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     //// 告知 GLFW 捕捉鼠标动作
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -156,12 +152,12 @@ int main() {
                         "glsl/skyboxShader.fs.glsl");
     Shader playerShader("glsl/player.vs.glsl", "glsl/player.fs.glsl");
 	Shader textShader("glsl/text.vs.glsl", "glsl/text.fs.glsl");
-	Shader particleShader("glsl/particle.vs.glsl", "glsl/particle.fs.glsl");
+    Shader sunShader("glsl/sun.vs.glsl", "glsl/sun.fs.glsl");
 
     // 加载纹理
     unsigned int groundTexture = loadTexture("assets/grass.png");
     unsigned int wallTexture = loadTexture("assets/wall.png");
-    unsigned int boxTexture = loadTexture("assets/box.jpg");
+    unsigned int sunTexture = loadTexture("assets/sun.jpg");
     unsigned int dirtTexture = loadTexture("assets/dirt.png");
     unsigned int endTexture = loadTexture("assets/end.png");
 
@@ -199,8 +195,8 @@ int main() {
     vector<Object> wall =
         createObjects(cubeVertices, vector<unsigned int>{wallTexture, depthMap},
                       wallPositions);
-    vector<Object> box = createObjects(
-        cubeVertices, vector<unsigned int>{boxTexture, depthMap}, boxPositions);
+    vector<Object> sun = createObjects(
+        cubeVertices, vector<unsigned int>{sunTexture, depthMap}, sunPositions);
     vector<Object> dirt =
         createObjects(cubeVertices, vector<unsigned int>{dirtTexture, depthMap},
                       dirtPositions);
@@ -211,7 +207,7 @@ int main() {
     // player
     Player* player = Player::getInstance("assets/sheep.obj",
                                          SCR_WIDTH, SCR_HEIGHT, depthMap);
-    manager.init(&wall, &box, player);
+    manager.init(&wall, &sun, player);
 
 	// text
 	Text text = Text();
@@ -220,11 +216,6 @@ int main() {
 
     //创建天空盒
     Skybox skybox(&skyboxShader);
-
-	// 创建粒子系统
-	ParticleGenerator Particles(300);
-
-    Explosion explosions(particleShader);
 
     // 配置着色器
     shader.use();
@@ -247,10 +238,9 @@ int main() {
 
         if (restart) {
             manager.resetObjsPos();
-            explosions.reset();
             restart = false;
         }
-        // 1. render depth of scene to texture (from light's perspective)
+        //  render depth of scene to texture (from light's perspective)
         // --------------------------------------------------------------
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
@@ -261,6 +251,8 @@ int main() {
         // render scene from light's point of view
         depthShader.use();
         depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        sunShader.use();
+        sunShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -269,7 +261,7 @@ int main() {
         renderObjects(ground, &depthShader, false);
         renderObjects(dirt, &depthShader, false);
         renderObjects(wall, &depthShader, false);
-        renderObjects(box, &depthShader, false);
+        renderObjects(sun, &sunShader, false);
         renderObjects(end, &depthShader, false);
 
         player->render(&depthShader, lightPos, false);
@@ -280,14 +272,18 @@ int main() {
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 2. render scene as normal using the generated depth/shadow map
+        //  render scene as normal using the generated depth/shadow map
         // --------------------------------------------------------------
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shader.use();
+        //glm::mat4 projection = glm::perspective(
+        //    glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f,
+        //    100.0f);
         glm::mat4 projection = glm::perspective(
-            glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f,
+            glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f,
             100.0f);
+        
         glm::mat4 view = camera.GetViewMatrix();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
@@ -299,26 +295,9 @@ int main() {
         renderObjects(ground, &shader);
         renderObjects(dirt, &shader);
         renderObjects(wall, &shader);
-        renderObjects(box, &shader);
         renderObjects(end, &shader);
+        renderObjects(sun, &shader, true, true);
 
-		if (manager.isGameOver()) {
-			 //渲染粒子
-			particleShader.use();
-			particleShader.setMat4("projection", projection);
-			particleShader.setMat4("view", view);
-			Particles.Update(0.05f, 500);
-			Particles.Draw(deltaTime, particleShader, glm::vec3(-2.5f, 0.0f, -0.5f));
-			Particles.Draw(deltaTime, particleShader, glm::vec3(-2.5f, 0.0f, -1.5f));
-			Particles.Draw(deltaTime, particleShader, glm::vec3(-2.5f, 0.0f, -2.5f));
-            Particles.Draw(deltaTime, particleShader, player->position);
-
-            //explosion
-            explosions.Update(deltaTime, 1);
-            explosions.Draw(glm::vec3(-2.5f, 0.0f, -0.5f));
-            explosions.Draw(glm::vec3(-2.5f, 0.0f, -1.5f));
-            explosions.Draw(glm::vec3(-2.5f, 0.0f, -2.5f));
-		}
 
         playerShader.use();
         player->setView(camera.GetViewMatrix());
@@ -328,20 +307,19 @@ int main() {
         view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
         skybox.render(view, projection);
 
-        renderTitle();
 
 		// 渲染文本
 		textShader.use();
 		projection = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
 		textShader.setMat4("projection", projection);
 
-		if (frameCount == 20) {
+		if (frameCount == 100) {
 			fps = string("FPS: ") + std::to_string((int)(1 / deltaTime));
 			frameCount = 0;
 		} else { 
 			++frameCount; 
 		}
-		text.RenderText(textShader, fps, 25.0f, 25.0f, 0.7f, glm::vec3(0.5, 0.8f, 0.2f));
+		text.RenderText(textShader, fps, 25.0f, SCR_HEIGHT - 50.0f, 0.7f, glm::vec3(0.8f, 0.5f, 0.7f));  //(0.5f, 0.8f, 0.2f)
 
 
         // 检查并调用事件，交换缓冲

@@ -30,13 +30,7 @@
     <ClCompile Include="code\player\Player.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="code\particle\particle.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="code\object\Object.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="code\explosion\Explosion.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="code\player\models\Mesh.cpp">
@@ -62,16 +56,10 @@
     <ClInclude Include="code\player\Player.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="code\particle\particle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="code\object\Object.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="code\manager\manager.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="code\explosion\Explosion.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="code\camera\Camera.h">
